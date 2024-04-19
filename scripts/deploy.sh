@@ -4,13 +4,16 @@ min_support_minor=19
 max_support_minor=20
 deploy_k8s_version="v1".$min_support_minor
 
+kubectl_cmd="k0s kubectl"
+kubelet_dir="/var/lib/k0s/kubelet"
+
 SCRIPT_PATH="$(realpath "$0")"
 SOURCE_PATH="$(realpath "$(dirname "${SCRIPT_PATH}")"/../)"
 config_file="${SOURCE_PATH}/config/client-info.yml"
-plugin_dir="/var/lib/kubelet/plugins/$plugin_name"
+plugin_dir="${kubelet_dir}/plugins/$plugin_name"
 
 parse_version(){
-    ver=$(kubectl version --short | grep Server | awk '{print $3}')
+    ver=$($kubectl_cmd version --short | grep Server | awk '{print $3}')
     major=$(echo "${ver##*v}" | cut -d'.' -f1)
     minor=$(echo "${ver##*v}" | cut -d'.' -f2)
 
@@ -45,17 +48,17 @@ csi_install(){
     echo "==== Creates namespace and secrets, then installs synology-csi ===="
     parse_version
 
-    kubectl create ns synology-csi
-    kubectl create secret -n synology-csi generic client-info-secret --from-file="$config_file"
+    $kubectl_cmd create ns synology-csi
+    $kubectl_cmd create secret -n synology-csi generic client-info-secret --from-file="$config_file"
 
     if [ ! -d "$plugin_dir" ]; then
         mkdir -p $plugin_dir
     fi
 
-    kubectl apply -f "$SOURCE_PATH"/deploy/kubernetes/$deploy_k8s_version
+    $kubectl_cmd apply -f "$SOURCE_PATH"/deploy/kubernetes/$deploy_k8s_version
 
     if [ "$basic_mode" == false ]; then
-        kubectl apply -f "$SOURCE_PATH"/deploy/kubernetes/$deploy_k8s_version/snapshotter
+        $kubectl_cmd apply -f "$SOURCE_PATH"/deploy/kubernetes/$deploy_k8s_version/snapshotter
     fi
 }
 
