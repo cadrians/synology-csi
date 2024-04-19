@@ -13,7 +13,7 @@ config_file="${SOURCE_PATH}/config/client-info.yml"
 plugin_dir="${kubelet_dir}/plugins/$plugin_name"
 
 parse_version(){
-    ver=$($kubectl_cmd version --short | grep Server | awk '{print $3}')
+    ver=$($kubectl_cmd version | grep Server | awk '{print $3}')
     major=$(echo "${ver##*v}" | cut -d'.' -f1)
     minor=$(echo "${ver##*v}" | cut -d'.' -f2)
 
